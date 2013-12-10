@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/pref_user_profile" >
+        <EditTextPreference
+                android:title="@string/pref_user_name"
+                android:summary="@string/pref_user_name_summary"
+                android:key="prefUsername"/>
+        <EditTextPreference
+                android:title="@string/pref_user_password"
+                android:summary="@string/pref_user_password_summary"
+                android:key="prefPasswordname"
+                android:inputType="textPassword" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="MathFacts Settings" >
+        <EditTextPreference
+            android:defaultValue="@string/low_number"
+            android:key="lowerRange"
+            android:summary="Range Lower Number"
+            android:title="Range Lower Number" 
+            android:inputType="phone" />
+        <EditTextPreference
+            android:defaultValue="@string/high_number"
+            android:key="upperRange"
+            android:summary="Range Upper Number"
+            android:title="Range Upper Number"
+            android:inputType="phone" />
+    </PreferenceCategory>
+         
+</PreferenceScreen>
