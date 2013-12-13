@@ -3,28 +3,37 @@
 
     <PreferenceCategory android:title="@string/pref_user_profile" >
         <EditTextPreference
-                android:title="@string/pref_user_name"
-                android:summary="@string/pref_user_name_summary"
-                android:key="prefUsername"/>
+            android:key="prefUsername"
+            android:summary="@string/pref_user_name_summary"
+            android:title="@string/pref_user_name" />
         <EditTextPreference
-                android:title="@string/pref_user_password"
-                android:summary="@string/pref_user_password_summary"
-                android:key="prefPasswordname"
-                android:inputType="textPassword" />
+            android:key="prefPasswordname"
+            android:inputType="textPassword"
+            android:summary="@string/pref_user_password_summary"
+            android:title="@string/pref_user_password" />
+
+        <Preference
+            android:summary="Press this to Login"
+            android:title="Login to MathFacts" >
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:targetClass="com.beniceman.mathfacts.LoginActivity"
+                android:targetPackage="com.beniceman.mathfacts" />
+        </Preference>
     </PreferenceCategory>
     <PreferenceCategory android:title="MathFacts Settings" >
         <EditTextPreference
             android:defaultValue="@string/low_number"
+            android:inputType="phone"
             android:key="lowerRange"
             android:summary="Range Lower Number"
-            android:title="Range Lower Number" 
-            android:inputType="phone" />
+            android:title="Range Lower Number" />
         <EditTextPreference
             android:defaultValue="@string/high_number"
+            android:inputType="phone"
             android:key="upperRange"
             android:summary="Range Upper Number"
-            android:title="Range Upper Number"
-            android:inputType="phone" />
+            android:title="Range Upper Number" />
     </PreferenceCategory>
-         
+
 </PreferenceScreen>

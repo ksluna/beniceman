@@ -13,9 +13,11 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -28,7 +30,7 @@ import com.beniceman.mathfacts.util.*;
 
 /**
  * Activity which displays a login screen to the user, offering registration as
- * well.
+ * well. Initially created using android sdk template
  */
 public class LoginActivity extends Activity {
 
@@ -38,9 +40,9 @@ public class LoginActivity extends Activity {
 	private UserLoginTask mAuthTask = null;
 
 	// Values for email and password at the time of the login attempt.
-	private String mEmail;
-	private String mPassword;
-	private String mDisplayName;
+	private String mEmail = "";
+	private String mPassword = "";
+	private String mDisplayName = "";
 
 	// UI references.
 	private EditText mEmailView;
@@ -49,6 +51,7 @@ public class LoginActivity extends Activity {
 	private View mLoginFormView;
 	private View mLoginStatusView;
 	private TextView mLoginStatusMessageView;
+	private TextView mLoginMessageView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,14 +59,28 @@ public class LoginActivity extends Activity {
 
 		setContentView(R.layout.activity_login);
 
+		SharedPreferences sharedPrefs = PreferenceManager
+				.getDefaultSharedPreferences(getBaseContext());
 		// Set up the login form.
 		mEmailView = (EditText) findViewById(R.id.email);
-		mEmailView.setText(mEmail);
 
+		if (mEmail.length() > 0) {
+			mEmailView.setText(mEmail);
+		} else {
+			mEmailView.setText(sharedPrefs.getString("prefUsername", ""));
+		}
 		mDisplayNameView = (EditText) findViewById(R.id.displayname);
 		mDisplayNameView.setText(mDisplayName);
 
 		mPasswordView = (EditText) findViewById(R.id.password);
+
+		if (mPassword.length() > 0) {
+			mPasswordView.setText(mPassword);
+		} else {
+			mPasswordView
+					.setText(sharedPrefs.getString("prefPasswordname", ""));
+		}
+
 		mPasswordView
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 					@Override
@@ -85,6 +102,7 @@ public class LoginActivity extends Activity {
 		mLoginFormView = findViewById(R.id.login_form);
 		mLoginStatusView = findViewById(R.id.login_status);
 		mLoginStatusMessageView = (TextView) findViewById(R.id.login_status_message);
+		mLoginMessageView = (TextView) findViewById(R.id.login_message);
 
 		findViewById(R.id.sign_in_button).setOnClickListener(
 				new View.OnClickListener() {
@@ -215,7 +233,8 @@ public class LoginActivity extends Activity {
 	 * the user.
 	 */
 	public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-		String mURL = "http://www.beniceman.com/common/process_login.php";
+		String mURL = getString(R.string.ben_iceman_base_url)
+				+ getString(R.string.ben_iceman_login_service);
 		String result = "";
 		String error = "";
 		String p = mPassword;
@@ -226,6 +245,7 @@ public class LoginActivity extends Activity {
 		protected Boolean doInBackground(Void... params) {
 
 			return callWebService();
+			// Process Results
 
 		}
 
@@ -235,10 +255,10 @@ public class LoginActivity extends Activity {
 			showProgress(false);
 
 			if (success) {
-				finish();
+				decider();
+				// finish();
 			} else {
-				mPasswordView
-						.setError(getString(R.string.error_incorrect_password));
+				mPasswordView.setError("WTF");
 				mPasswordView.requestFocus();
 			}
 		}
@@ -268,6 +288,7 @@ public class LoginActivity extends Activity {
 				} else {
 					InputStream err = conn.getErrorStream();
 					error = err.toString();
+					result = "0";
 					return false;
 				}
 				try {
@@ -284,7 +305,10 @@ public class LoginActivity extends Activity {
 						try {
 							br.close();
 						} catch (IOException e) {
-							e.printStackTrace();
+							error += e.getMessage();
+							result = "0";
+							return false;
+
 						}
 					}
 				}
@@ -292,51 +316,72 @@ public class LoginActivity extends Activity {
 				conn.disconnect();
 
 			} catch (MalformedURLException e) {
-				e.printStackTrace();
+				error += e.getMessage();
+				result = "0";
 				return false;
 			} catch (IOException e) {
-
-				e.printStackTrace();
+				error += e.getMessage();
+				result = "0";
 				return false;
 			}
 			return true;
 		} // end callWebService()
 
-		public void decider(String response) {
-			String[] response_array = response.split(",");
+		public void decider() {
+			String[] response_array = result.split(",");
 			int indicator = Integer.parseInt(response_array[0]);
 			String username = response_array[1];
 			String message = "";
 			switch (indicator) {
 			case 1:// Account is locked
 				message = "Account is locked!";
+				mLoginMessageView.setText(message);
 				break;
 			case 2:// Login successful Welcome back
 				message = "Welcome back, " + username + "!";
+				mLoginMessageView.setText(message);
 				// setResult(0,'ADD');
 				break;
 			case 3:// email found password incorrect
 				message = "Incorrect password, try again.";
+				mPasswordView
+						.setError(getString(R.string.error_incorrect_password));
+				mPasswordView.requestFocus();
+				mLoginMessageView.setText(message);
 				break;
 			case 4:// Try again we need a display name
 				message = "Please enter a display name.";
+				mDisplayNameView.setError("Enter a Display Name");
+				mDisplayNameView.requestFocus();
+				mLoginMessageView.setText(message);
 				break;
 			case 5:// Inserted new record Welcome
 				message = "Welcome, " + username + "!";
+				mLoginMessageView.setText(message);
 				// setResult(0,'ADD');
 				break;
 			case 51:// Updated password Welcome
 				message = "Welcome, " + username + "!";
+				mLoginMessageView.setText(message);
 				// setResult(0,'ADD');
 				break;
 			case 6:// Try again original Password does not match
 				message = "Orignal Password Incorrect!";
+				mPasswordView
+						.setError(getString(R.string.error_incorrect_password));
+				mPasswordView.requestFocus();
+				mLoginMessageView.setText(message);
 				break;
 			case 7:// Try again new passwords do not match
 				message = "New Passwords Do Not Match!";
+				mPasswordView
+						.setError(getString(R.string.error_incorrect_password));
+				mPasswordView.requestFocus();
+				mLoginMessageView.setText(message);
 				break;
 			case 8:// Could not find user
 				message = "Could Not Find User!";
+				mLoginMessageView.setText(message);
 				break;
 			case 9:// email did not work
 				break;

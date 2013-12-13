@@ -14,5 +14,6 @@
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <string name="display_name">Display Name</string>
+    <string name="login_message">Enter your username and password.   If this is your first time and need to register also enter a display name</string>
 
 </resources>

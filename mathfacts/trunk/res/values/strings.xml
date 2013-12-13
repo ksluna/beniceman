@@ -8,6 +8,8 @@
     <string name="be_nice_man_nice">NICE</string>
     <string name="be_nice_man_man">MAN</string>
     <string name="ben_iceman">BEN ICEMAN</string>
+    <string name="ben_iceman_base_url">http://www.beniceman.com/common/</string>
+    <string name="ben_iceman_login_service" >process_login.php</string>
     <string name="dummy_button">Try It!</string>
     <string name="dummy_content">Be Nice Man</string>
     <string name="clear_button">Clear</string>
