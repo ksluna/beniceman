@@ -22,7 +22,7 @@ public class Activity_Computation extends Activity {
 	private String numberDisplayed = "";
 	private EditText result;
 	private static final int RESULT_SETTINGS = 1;
-
+	private String mUserId;
 	Button enterButton, clearButton;
 
 	private void updateResultField() {
@@ -35,6 +35,10 @@ public class Activity_Computation extends Activity {
 		setContentView(R.layout.computation);
 		// Show the Up button in the action bar.
 		setupActionBar();
+		
+		SharedPreferences sharedPreferences = getSharedPreferences("prefs",0);
+		mUserId = sharedPreferences.getString("userid", "");
+
 
 		if (savedInstanceState != null) {
 			String score = savedInstanceState.getString("Score");

@@ -28,7 +28,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.beniceman.mathfacts.util.*;
+import com.beniceman.mathfacts.util.CommonIce;
 
 /**
  * Activity which displays a login screen to the user, offering registration as
@@ -126,22 +126,24 @@ public class LoginActivity extends Activity {
 		getMenuInflater().inflate(R.menu.login, menu);
 		return true;
 	}
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-	    switch(item.getItemId()) {
-	    case R.id.action_change_password:
-	        Intent intent = new Intent(this, ChangePasswordActivity.class);
-	        this.startActivity(intent);
-	        break;
-	    case R.id.action_forgot_password:
-	        //Intent intent = new Intent(this, ForgotPasswordActivity.class);
-	        break;
-	    default:
-	        return super.onOptionsItemSelected(item);
-	    }
+		switch (item.getItemId()) {
+		case R.id.action_change_password:
+			Intent intent = new Intent(this, ChangePasswordActivity.class);
+			this.startActivity(intent);
+			break;
+		case R.id.action_forgot_password:
+			// Intent intent = new Intent(this, ForgotPasswordActivity.class);
+			break;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
 
-	    return true;
+		return true;
 	}
+
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
 	 * If there are form errors (invalid email, missing fields, etc.), the
@@ -350,10 +352,15 @@ public class LoginActivity extends Activity {
 			if (response_array != null) {
 				indicator = Integer.parseInt(response_array[0]);
 			}
-			
+
 			String username = "";
 			if (response_array.length > 1) {
 				username = response_array[1];
+			}
+
+			String userid = "";
+			if (response_array.length > 2) {
+				userid = response_array[2];
 			}
 			String message = "";
 			switch (indicator) {
@@ -364,6 +371,7 @@ public class LoginActivity extends Activity {
 			case 2:// Login successful Welcome back
 				message = "Welcome back, " + username + "!";
 				mLoginMessageView.setText(message);
+				SavePreferences("userid",userid);
 				// setResult(0,'ADD');
 				break;
 			case 3:// email found password incorrect
@@ -382,6 +390,7 @@ public class LoginActivity extends Activity {
 			case 5:// Inserted new record Welcome
 				message = "Welcome, " + username + "!";
 				mLoginMessageView.setText(message);
+				SavePreferences("userid",userid);
 				// setResult(0,'ADD');
 				break;
 			case 8:// Could not find user
@@ -393,5 +402,14 @@ public class LoginActivity extends Activity {
 				break;
 			}
 		}
+
+		private void SavePreferences(String key, String value) {
+			SharedPreferences sharedPreferences = getSharedPreferences("prefs",0);
+			SharedPreferences.Editor editor = sharedPreferences.edit();
+			editor.putString(key, value);
+			editor.commit();
+			
+		}
+
 	}
 }
