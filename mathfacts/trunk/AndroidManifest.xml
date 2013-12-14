@@ -50,6 +50,11 @@
             android:label="@string/title_activity_login"
             android:windowSoftInputMode="adjustResize|stateVisible" >
         </activity>
+        <activity
+            android:name="com.beniceman.mathfacts.ChangePasswordActivity"
+            android:label="@string/title_activity_change_password" 
+            android:windowSoftInputMode="adjustResize|stateVisible" >
+        </activity>
     </application>
 
 </manifest>

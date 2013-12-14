@@ -13,6 +13,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -21,6 +22,7 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
@@ -124,7 +126,22 @@ public class LoginActivity extends Activity {
 		getMenuInflater().inflate(R.menu.login, menu);
 		return true;
 	}
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    switch(item.getItemId()) {
+	    case R.id.action_change_password:
+	        Intent intent = new Intent(this, ChangePasswordActivity.class);
+	        this.startActivity(intent);
+	        break;
+	    case R.id.action_forgot_password:
+	        //Intent intent = new Intent(this, ForgotPasswordActivity.class);
+	        break;
+	    default:
+	        return super.onOptionsItemSelected(item);
+	    }
 
+	    return true;
+	}
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
 	 * If there are form errors (invalid email, missing fields, etc.), the
@@ -329,8 +346,15 @@ public class LoginActivity extends Activity {
 
 		public void decider() {
 			String[] response_array = result.split(",");
-			int indicator = Integer.parseInt(response_array[0]);
-			String username = response_array[1];
+			int indicator = 0;
+			if (response_array != null) {
+				indicator = Integer.parseInt(response_array[0]);
+			}
+			
+			String username = "";
+			if (response_array.length > 1) {
+				username = response_array[1];
+			}
 			String message = "";
 			switch (indicator) {
 			case 1:// Account is locked
@@ -360,30 +384,9 @@ public class LoginActivity extends Activity {
 				mLoginMessageView.setText(message);
 				// setResult(0,'ADD');
 				break;
-			case 51:// Updated password Welcome
-				message = "Welcome, " + username + "!";
-				mLoginMessageView.setText(message);
-				// setResult(0,'ADD');
-				break;
-			case 6:// Try again original Password does not match
-				message = "Orignal Password Incorrect!";
-				mPasswordView
-						.setError(getString(R.string.error_incorrect_password));
-				mPasswordView.requestFocus();
-				mLoginMessageView.setText(message);
-				break;
-			case 7:// Try again new passwords do not match
-				message = "New Passwords Do Not Match!";
-				mPasswordView
-						.setError(getString(R.string.error_incorrect_password));
-				mPasswordView.requestFocus();
-				mLoginMessageView.setText(message);
-				break;
 			case 8:// Could not find user
 				message = "Could Not Find User!";
 				mLoginMessageView.setText(message);
-				break;
-			case 9:// email did not work
 				break;
 			default:
 				message = "What happened there!.";

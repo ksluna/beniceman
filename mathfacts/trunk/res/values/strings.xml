@@ -9,7 +9,8 @@
     <string name="be_nice_man_man">MAN</string>
     <string name="ben_iceman">BEN ICEMAN</string>
     <string name="ben_iceman_base_url">http://www.beniceman.com/common/</string>
-    <string name="ben_iceman_login_service" >process_login.php</string>
+    <string name="ben_iceman_login_service">process_login.php</string>
+    <string name="ben_iceman_change_password_service">change_password.php</string>
     <string name="dummy_button">Try It!</string>
     <string name="dummy_content">Be Nice Man</string>
     <string name="clear_button">Clear</string>
@@ -48,5 +49,5 @@
     <string name="pref_update_setting">Update Settings</string>
     <string name="title_activity_about">About Ben Iceman</string>
     <string name="aboutlink">http://www.beniceman.com</string>
-
+    
 </resources>
