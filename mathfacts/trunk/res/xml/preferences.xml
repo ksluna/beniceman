@@ -34,6 +34,12 @@
             android:key="upperRange"
             android:summary="Range Upper Number"
             android:title="Range Upper Number" />
+        <EditTextPreference
+            android:defaultValue="0"
+            android:inputType="phone"
+            android:key="addingtotal"
+            android:summary="Adding Grand Total"
+            android:title="Adding Grand Total" />
     </PreferenceCategory>
 
 </PreferenceScreen>

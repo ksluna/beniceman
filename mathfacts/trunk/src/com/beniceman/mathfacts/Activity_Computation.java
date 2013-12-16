@@ -1,7 +1,9 @@
 package com.beniceman.mathfacts;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -12,22 +14,35 @@ import android.widget.TextView;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources.NotFoundException;
 import android.graphics.Color;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.view.View.OnClickListener;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
+
+import com.beniceman.mathfacts.util.CommonIce;
 
 public class Activity_Computation extends Activity {
 	private String numberDisplayed = "";
 	private EditText result;
 	private static final int RESULT_SETTINGS = 1;
 	private String mUserId;
-	Button enterButton, clearButton;
+	private String mDomain = "ADD";
+	private int mResult = 0;
+	private String mReturnedResult;
+	private ResultTask mResultTask = null;
 
-	private void updateResultField() {
-		result.setText(this.numberDisplayed);
-	}
+	Button enterButton, clearButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -35,10 +50,9 @@ public class Activity_Computation extends Activity {
 		setContentView(R.layout.computation);
 		// Show the Up button in the action bar.
 		setupActionBar();
-		
-		SharedPreferences sharedPreferences = getSharedPreferences("prefs",0);
-		mUserId = sharedPreferences.getString("userid", "");
 
+		SharedPreferences sharedPreferences = getSharedPreferences("prefs", 0);
+		mUserId = sharedPreferences.getString("userid", "");
 
 		if (savedInstanceState != null) {
 			String score = savedInstanceState.getString("Score");
@@ -126,6 +140,7 @@ public class Activity_Computation extends Activity {
 			public void onClick(View v) {
 				SharedPreferences sharedPrefs = PreferenceManager
 						.getDefaultSharedPreferences(getBaseContext());
+				
 				int min = Integer.parseInt(sharedPrefs.getString("lowerRange",
 						"1"));
 				int max = Integer.parseInt(sharedPrefs.getString("upperRange",
@@ -140,16 +155,28 @@ public class Activity_Computation extends Activity {
 				TextView tvScore = (TextView) findViewById(R.id.score);
 				int score = Integer.parseInt(tvScore.getText().toString());
 				if (!result.equals("")) {
-					if (calculate(Integer.parseInt(first),
-							Integer.parseInt(second), Integer.parseInt(result))) {
-						score++;
-						tvScore.setText(String.valueOf(score));
-						tvScore.setTextColor(getResources().getColor(
-								R.color.green_good));
-					} else {
-						score--;
-						tvScore.setText(String.valueOf(score));
-						tvScore.setTextColor(Color.RED);
+					try {
+						if (calculate(Integer.parseInt(first),
+								Integer.parseInt(second),
+								Integer.parseInt(result))) {
+							score++;
+							tvScore.setText(String.valueOf(score));
+							tvScore.setTextColor(getResources().getColor(
+									R.color.green_good));
+						} else {
+							score--;
+							tvScore.setText(String.valueOf(score));
+							tvScore.setTextColor(Color.RED);
+						}
+					} catch (NumberFormatException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (NotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				} else {
 					score--;
@@ -226,16 +253,25 @@ public class Activity_Computation extends Activity {
 		return true;
 	}
 
+	private void updateResultField() {
+		result.setText(this.numberDisplayed);
+	}
+
 	/*
 	 * Calculate the variables
 	 */
-	public boolean calculate(int first, int second, int answer) {
+	public boolean calculate(int first, int second, int answer)
+			throws NoSuchAlgorithmException {
 		boolean ret = false;
 		int total = first + second;
 		if (total == answer) {
 			ret = true;
+			mResult = 1;
+		} else {
+			mResult = -1;
 		}
 		clearAll();
+		attemptResult();
 		return ret;
 	}
 
@@ -267,6 +303,131 @@ public class Activity_Computation extends Activity {
 		int randomNum = rand.nextInt((max - min) + 1) + min;
 
 		return randomNum;
+	}
+
+	/**
+	 * Attempts to sign in or register the account specified by the login form.
+	 * If there are form errors (invalid email, missing fields, etc.), the
+	 * errors are presented and no actual login attempt is made.
+	 * 
+	 * @throws NoSuchAlgorithmException
+	 */
+	public void attemptResult() throws NoSuchAlgorithmException {
+		if (mResultTask != null) {
+			return;
+		}
+		// Use if errors found
+		// boolean cancel = true;
+		if (mUserId != null || mUserId != "") {
+			mResultTask = new ResultTask();
+			mResultTask.execute((Void) null);
+		}
+	}
+
+	/*
+	 * Represents an asynchronous total task used to update user result.
+	 */
+	public class ResultTask extends AsyncTask<Void, Void, Boolean> {
+		String mURL = getString(R.string.ben_iceman_base_url)
+				+ getString(R.string.ben_iceman_set_result_service);
+		String error = "";
+		String domanin = mDomain;
+		String userid = mUserId;
+
+		@Override
+		protected Boolean doInBackground(Void... params) {
+
+			return callWebService();
+			// Process Results
+
+		}
+
+		@Override
+		protected void onPostExecute(final Boolean success) {
+			mResultTask = null;
+
+			if (success) {
+				this.SavePreferences("addresult", mReturnedResult);
+			}
+			// else {
+			// mPasswordView.setError("WTF");
+			// mPasswordView.requestFocus();
+			// }
+		}
+
+		@Override
+		protected void onCancelled() {
+			mResultTask = null;
+		}
+
+		public Boolean callWebService() {
+			BufferedReader br = null;
+			StringBuilder sb = new StringBuilder();
+
+			String line;
+
+			try {
+
+				URL url = new URL(mURL + "?domain=" + mDomain + "&result="
+						+ mResult + "&userid=" + mUserId);
+				HttpURLConnection conn = (HttpURLConnection) url
+						.openConnection();
+
+				InputStream is = null;
+				if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+					is = conn.getInputStream();
+				} else {
+					InputStream err = conn.getErrorStream();
+					error = err.toString();
+					return false;
+				}
+				try {
+
+					br = new BufferedReader(new InputStreamReader(is));
+					while ((line = br.readLine()) != null) {
+						sb.append(line);
+					}
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					if (br != null) {
+						try {
+							br.close();
+						} catch (IOException e) {
+							error += e.getMessage();
+							return false;
+
+						}
+					}
+				}
+				mReturnedResult = sb.toString();
+				conn.disconnect();
+
+			} catch (MalformedURLException e) {
+				error += e.getMessage();
+				return false;
+			} catch (IOException e) {
+				error += e.getMessage();
+				return false;
+			}
+			return true;
+		} // end callWebService()
+
+		private void SavePreferences(String key, String value) {
+			SharedPreferences sharedPreferences = getSharedPreferences("prefs",
+					0);
+			SharedPreferences.Editor editor = sharedPreferences.edit();
+			editor.putString(key, value);
+			editor.commit();
+			
+			SharedPreferences sharedPrefs = PreferenceManager
+					.getDefaultSharedPreferences(getBaseContext());
+			SharedPreferences.Editor editor2 = sharedPrefs.edit();
+			editor2.putString("addingtotal", value);
+			editor2.commit();
+			
+		}
 	}
 
 }
