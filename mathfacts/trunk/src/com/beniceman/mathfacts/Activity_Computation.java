@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -50,9 +51,6 @@ public class Activity_Computation extends Activity {
 		setContentView(R.layout.computation);
 		// Show the Up button in the action bar.
 		setupActionBar();
-
-		SharedPreferences sharedPreferences = getSharedPreferences("prefs", 0);
-		mUserId = sharedPreferences.getString("userid", "");
 
 		if (savedInstanceState != null) {
 			String score = savedInstanceState.getString("Score");
@@ -140,11 +138,15 @@ public class Activity_Computation extends Activity {
 			public void onClick(View v) {
 				SharedPreferences sharedPrefs = PreferenceManager
 						.getDefaultSharedPreferences(getBaseContext());
-				
+
 				int min = Integer.parseInt(sharedPrefs.getString("lowerRange",
 						"1"));
 				int max = Integer.parseInt(sharedPrefs.getString("upperRange",
 						"120"));
+
+				SharedPreferences sharedPreferences = getSharedPreferences(
+						"prefs", 0);
+				mUserId = sharedPreferences.getString("userid", "");
 
 				TextView tvFirst = (TextView) findViewById(R.id.first);
 				String first = tvFirst.getText().toString();
@@ -179,15 +181,12 @@ public class Activity_Computation extends Activity {
 						e.printStackTrace();
 					}
 				} else {
-					score--;
-					tvScore.setText(String.valueOf(score));
-					tvScore.setTextColor(Color.RED);
+					tvScore.setTextColor(Color.BLACK);
 				}
 				int firstRand = randInt(min, max);
 				tvFirst.setText(String.valueOf(firstRand));
 				int secondRand = randInt(min, max);
 				tvSecond.setText(String.valueOf(secondRand));
-
 			}
 		});
 
@@ -347,6 +346,9 @@ public class Activity_Computation extends Activity {
 			mResultTask = null;
 
 			if (success) {
+				Toast.makeText(getApplicationContext(),
+						mReturnedResult + " - " + mUserId, Toast.LENGTH_LONG)
+						.show();
 				this.SavePreferences("addresult", mReturnedResult);
 			}
 			// else {
@@ -367,43 +369,50 @@ public class Activity_Computation extends Activity {
 			String line;
 
 			try {
+				SharedPreferences sharedPreferences = getSharedPreferences(
+						"prefs", 0);
+				mUserId = sharedPreferences.getString("userid", "");
+				//We should login here if no userid
+				
+				//
+				if (mUserId != null) {
+					URL url = new URL(mURL + "?domain=" + mDomain + "&result="
 
-				URL url = new URL(mURL + "?domain=" + mDomain + "&result="
-						+ mResult + "&userid=" + mUserId);
-				HttpURLConnection conn = (HttpURLConnection) url
-						.openConnection();
+					+ mResult + "&userid=" + mUserId);
+					HttpURLConnection conn = (HttpURLConnection) url
+							.openConnection();
 
-				InputStream is = null;
-				if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-					is = conn.getInputStream();
-				} else {
-					InputStream err = conn.getErrorStream();
-					error = err.toString();
-					return false;
-				}
-				try {
-
-					br = new BufferedReader(new InputStreamReader(is));
-					while ((line = br.readLine()) != null) {
-						sb.append(line);
+					InputStream is = null;
+					if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+						is = conn.getInputStream();
+					} else {
+						InputStream err = conn.getErrorStream();
+						error = err.toString();
+						return false;
 					}
+					try {
 
-				} catch (IOException e) {
-					e.printStackTrace();
-				} finally {
-					if (br != null) {
-						try {
-							br.close();
-						} catch (IOException e) {
-							error += e.getMessage();
-							return false;
+						br = new BufferedReader(new InputStreamReader(is));
+						while ((line = br.readLine()) != null) {
+							sb.append(line);
+						}
 
+					} catch (IOException e) {
+						e.printStackTrace();
+					} finally {
+						if (br != null) {
+							try {
+								br.close();
+							} catch (IOException e) {
+								error += e.getMessage();
+								return false;
+
+							}
 						}
 					}
+					mReturnedResult = sb.toString();
+					conn.disconnect();
 				}
-				mReturnedResult = sb.toString();
-				conn.disconnect();
-
 			} catch (MalformedURLException e) {
 				error += e.getMessage();
 				return false;
@@ -411,6 +420,7 @@ public class Activity_Computation extends Activity {
 				error += e.getMessage();
 				return false;
 			}
+
 			return true;
 		} // end callWebService()
 
@@ -420,13 +430,13 @@ public class Activity_Computation extends Activity {
 			SharedPreferences.Editor editor = sharedPreferences.edit();
 			editor.putString(key, value);
 			editor.commit();
-			
+
 			SharedPreferences sharedPrefs = PreferenceManager
 					.getDefaultSharedPreferences(getBaseContext());
 			SharedPreferences.Editor editor2 = sharedPrefs.edit();
 			editor2.putString("addingtotal", value);
 			editor2.commit();
-			
+
 		}
 	}
 
