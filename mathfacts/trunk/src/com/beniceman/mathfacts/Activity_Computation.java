@@ -337,8 +337,6 @@ public class Activity_Computation extends Activity {
 		protected Boolean doInBackground(Void... params) {
 
 			return callWebService();
-			// Process Results
-
 		}
 
 		@Override
@@ -346,9 +344,9 @@ public class Activity_Computation extends Activity {
 			mResultTask = null;
 
 			if (success) {
-				Toast.makeText(getApplicationContext(),
+				/*Toast.makeText(getApplicationContext(),
 						mReturnedResult + " - " + mUserId, Toast.LENGTH_LONG)
-						.show();
+						.show();*/
 				this.SavePreferences("addresult", mReturnedResult);
 			}
 			// else {
@@ -372,8 +370,7 @@ public class Activity_Computation extends Activity {
 				SharedPreferences sharedPreferences = getSharedPreferences(
 						"prefs", 0);
 				mUserId = sharedPreferences.getString("userid", "");
-				//We should login here if no userid
-				
+				//We should login here if no userid??
 				//
 				if (mUserId != null) {
 					URL url = new URL(mURL + "?domain=" + mDomain + "&result="
@@ -410,7 +407,10 @@ public class Activity_Computation extends Activity {
 							}
 						}
 					}
-					mReturnedResult = sb.toString();
+					if(isInteger(sb.toString()))
+					{
+						mReturnedResult = sb.toString();
+					}
 					conn.disconnect();
 				}
 			} catch (MalformedURLException e) {
@@ -437,6 +437,15 @@ public class Activity_Computation extends Activity {
 			editor2.putString("addingtotal", value);
 			editor2.commit();
 
+		}
+		public  boolean isInteger(String s) {
+		    try { 
+		        Integer.parseInt(s); 
+		    } catch(NumberFormatException e) { 
+		        return false; 
+		    }
+		    // only got here if we didn't return false
+		    return true;
 		}
 	}
 
